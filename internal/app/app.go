@@ -29,6 +29,8 @@ func Run(cfg Config, log *zap.SugaredLogger) error {
 }
 
 func routes(s *transport.HTTP) {
-	s.Handle("/", s.HandleRoot())
-	s.Handle("/address", s.HandleAddress())
+	s.Handle(http.MethodGet, "/", s.HandleRoot())
+	s.Handle(http.MethodPost, "/address", s.CreateAddress())
+	s.Handle(http.MethodGet, "/address/{id}", s.GetAddress())
+	s.Handle(http.MethodGet, "/address", s.SearchAddress(), "search", "{search}")
 }
