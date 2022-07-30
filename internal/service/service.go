@@ -4,7 +4,6 @@ import "context"
 
 type Service interface {
 	GetAddressByID(ctx context.Context, id int32) (Address, error)
-	GetAddressByString(ctx context.Context, address string) (Address, error)
 	GetAddressBySearch(ctx context.Context, query string) ([]AddressSearch, error)
 	CreateAddress(ctx context.Context, address CreateAddress) (Address, error)
 }
@@ -15,7 +14,6 @@ type service struct {
 
 type Storage interface {
 	GetAddressByID(ctx context.Context, id int32) (Address, error)
-	GetAddressByString(ctx context.Context, address string) (Address, error)
 	GetAddressBySearch(ctx context.Context, query string) ([]AddressSearch, error)
 	CreateAddress(ctx context.Context, address CreateAddress) (Address, error)
 }
@@ -29,11 +27,6 @@ func NewService(storage Storage) *service {
 func (s *service) GetAddressByID(ctx context.Context, id int32) (Address, error) {
 	// TODO validation logic
 	return s.storage.GetAddressByID(ctx, id)
-}
-
-func (s *service) GetAddressByString(ctx context.Context, address string) (Address, error) {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (s *service) GetAddressBySearch(ctx context.Context, query string) ([]AddressSearch, error) {

@@ -1,11 +1,13 @@
 package transport
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/coreyvan/go-address/internal/service"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 func (h *HTTP) CreateAddress() Handler {
@@ -20,7 +22,7 @@ func (h *HTTP) CreateAddress() Handler {
 			return service.NewInternalServerError("marshaling into create request").Wrap(err)
 		}
 
-		addr, err := h.service.CreateAddress(in)
+		addr, err := h.service.CreateAddress(context.Background(), in)
 		if err != nil {
 			return service.NewInternalServerError("creating address").Wrap(err)
 		}
@@ -44,7 +46,12 @@ func (h *HTTP) GetAddress() Handler {
 			return service.NewBadRequestError("no ID in request")
 		}
 
-		addr, err := h.service.GetAddressByID(id)
+		in, err := strconv.ParseInt(id, 10, 32)
+		if err != nil {
+			return service.NewBadRequestError("could not convert id")
+		}
+
+		addr, err := h.service.GetAddressByID(context.Background(), int32(in))
 		if err != nil {
 			return service.NewInternalServerError("getting address").Wrap(err)
 		}
@@ -66,7 +73,7 @@ func (h *HTTP) SearchAddress() Handler {
 			return nil
 		}
 
-		addr, err := h.service.GetAddressBySearch(search)
+		addr, err := h.service.GetAddressBySearch(context.Background(), search)
 		if err != nil {
 			return service.NewInternalServerError("searching for address").Wrap(err)
 		}

@@ -4,16 +4,31 @@ import (
 	"context"
 	"github.com/coreyvan/go-address/internal/service"
 	"github.com/coreyvan/go-address/internal/storage/db"
+	"github.com/jackc/pgx/v4"
 	expand "github.com/openvenues/gopostal/expand"
 	"github.com/pkg/errors"
 )
 
 type postgresStorage struct {
-	db *db.Queries
+	db    *db.Queries
+	Close func(ctx context.Context) error
 }
 
-func NewPostgresStorage() *postgresStorage {
-	return &postgresStorage{}
+type PostgresConfig struct {
+	Conn string
+}
+
+func CreatePostgresStorage(cfg PostgresConfig) (*postgresStorage, error) {
+	conn, err := pgx.Connect(context.Background(), cfg.Conn)
+	if err != nil {
+		return nil, errors.Wrap(err, "connecting to pg")
+	}
+
+	q := db.New(conn)
+	return &postgresStorage{
+		db:    q,
+		Close: conn.Close,
+	}, nil
 }
 
 func (p *postgresStorage) GetAddressByID(ctx context.Context, id int32) (service.Address, error) {
@@ -32,20 +47,29 @@ func (p *postgresStorage) GetAddressByID(ctx context.Context, id int32) (service
 	}, nil
 }
 
-func (p *postgresStorage) GetAddressBySearch(query string) ([]service.AddressSearch, error) {
-	return []service.AddressSearch{
-		{
+func (p *postgresStorage) GetAddressBySearch(ctx context.Context, query string) ([]service.AddressSearch, error) {
+	results, err := p.db.SearchAddresses(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "searching for address in pg")
+	}
+
+	var out []service.AddressSearch
+	for _, r := range results {
+		ar := service.AddressSearch{
 			Address: service.Address{
-				ID:           1234,
-				StreetNumber: "1234",
-				StreetName:   "Sesame St",
-				City:         "New York",
-				State:        "NY",
-				Zipcode:      12345,
+				ID:           r.ID,
+				StreetNumber: r.StreetNumber,
+				StreetName:   r.StreetName,
+				City:         r.City,
+				State:        r.State,
+				Zipcode:      r.Zipcode,
 			},
-			Similarity: 1,
-		},
-	}, nil
+			Similarity: r.Sim.(float32),
+		}
+		out = append(out, ar)
+	}
+
+	return out, nil
 }
 
 func (p *postgresStorage) CreateAddress(ctx context.Context, address service.CreateAddress) (service.Address, error) {
@@ -85,7 +109,6 @@ func (p *postgresStorage) createAddressSearchTerms(ctx context.Context, address 
 }
 
 func (p *postgresStorage) bulkAddTerms(ctx context.Context, terms []string, id int32) error {
-	// TODO: bulk add terms to pg
 	for _, t := range terms {
 		if err := p.db.CreateAddressLookup(ctx, db.CreateAddressLookupParams{
 			Address:   t,

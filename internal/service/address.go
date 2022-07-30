@@ -32,5 +32,5 @@ type CreateAddress struct {
 
 type AddressSearch struct {
 	Address    Address
-	Similarity int
+	Similarity float32
 }

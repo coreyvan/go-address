@@ -18,7 +18,11 @@ func Run(cfg Config, log *zap.SugaredLogger) error {
 		Port: cfg.Port,
 	}
 
-	st := storage.NewPostgresStorage()
+	st, err := storage.CreatePostgresStorage(storage.PostgresConfig{Conn: cfg.Conn})
+	if err != nil {
+		return err
+	}
+
 	srv := service.NewService(st)
 
 	t := transport.NewHTTPTransport(tCfg, log, srv)
