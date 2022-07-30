@@ -3,12 +3,12 @@ package service
 import "fmt"
 
 type Address struct {
-	ID           string `json:"id,omitempty"`
+	ID           int32  `json:"id,omitempty"`
 	StreetNumber string `json:"streetNumber,omitempty"`
 	StreetName   string `json:"streetName,omitempty"`
 	City         string `json:"city,omitempty"`
 	State        string `json:"state,omitempty"`
-	Zipcode      int    `json:"zipcode,omitempty"`
+	Zipcode      int32  `json:"zipcode,omitempty"`
 	Geo          *Geo   `json:"geo,omitempty"`
 }
 
@@ -26,7 +26,7 @@ type CreateAddress struct {
 	StreetName   string `json:"streetName,omitempty"`
 	City         string `json:"city,omitempty"`
 	State        string `json:"state,omitempty"`
-	Zipcode      int    `json:"zipcode,omitempty"`
+	Zipcode      int32  `json:"zipcode,omitempty"`
 	Geo          *Geo   `json:"geo,omitempty"`
 }
 
